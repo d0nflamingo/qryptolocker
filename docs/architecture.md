@@ -72,4 +72,52 @@ These values guarantee a security level at minimum equivalent to AES-256.
 - **Output size:** 32 bytes
   - Guarantees the 256-bit security level.
 
+## Key generation
+As the master password needs to be easily changed in case of compromission of the server, this password is used as a key wrapper. It drastically reduces the operation time by allowing not to decrypt and re-encrypt the whole data. Unlike file passwords, the master password is randomly picked from the dictionary and not derived from the root path hash. This is necessary as all password use the same salt to be derived. It wouldn't be possible to change this password without re-deriving all files passwords otherwise.
+
+To follow the same objective, the server key pair is bundled in both executables which allows the client service to secure the master password and critical informations fast, without necessitating server connection to receive the public key.
+
+---
+
+## Encryption process
+In order to allow files and specific sub-directories password decryption, a metadata table keeps the relations between files/directories in the arborescence and the necessary elements for their encryption/decryption.
+
+This table contains
+- For the files:
+  - **Path** of the file
+  - **Word** encrypted with parent directory's word
+  - **Nonce** for the word encryption
+  - **Nonce** for the file encryption
+  - **Salt** for the `KDF(word)` for the file encryption
+- For the directories:
+  - **Path** of the directory
+  - **Word** encrypted with parent directory's word
+  - **Nonce** for the word encryption
+  - **Salt** for the `KDF(word)` for the encryption of the words of this directory
+
+To achieve this, a hash of the file's/directory's path is arithmetically encoded into a numeric value (following a simple modulo based on the dictionary's size) which is then used as index in the dictionary to assign it a word.
+
+As the client and the server are using the same dictionary, the server is capable of sending back a password to the client without him having to send it before, but simply with associated data (path, salt). For this word generation process, the same salt is used then sent to the server, which removes the need to send one salt per file to the server.
+
+The content of each file is then encrypted and authenticated with the help of a key derived from its unique set of word and salt. Each directory entry in the metadata table allows for the encryption of all its children's entry words. 
+
+---
+
+## Decryption process
+The process differs depending if we want to decrypt the whole arborescence or only a part of it.
+
+**Whole arborescence:**
+
+Once requested, the server will send back the master password, the unique salt initially used in the key wrapping process and a challenge to guarantee integrity on the sent master password. The recursive decryption of the whole arborescence will then start with decrypting each directory word and then each file word, all with the help of the other recorded metadata, such as he nonces used to encrypt these words, the nonces which encrypted the files and the salts used to derive the words in symmetric keys.
+
+**Unique file:**
+
+For a unique file, the process is lighter. The unique salt of the parent directory will be retrieved in the parent's ancestor metadata table and the parent's directory's word will be requested to the server and derived with the salt. The resulting key will be used to decrypt the file's word and therefore start its decryption process.
+
+---
+
+## Master password roll-out process
+
+The master password and the salt used in the key-wrapping process will be requested to the server. Then the master key will be temporally decrypted, a word and a new salt generated and then used to derive a key. The master key will finally be encrypted again with a new nonce and the salt + word will be sent to the server to save the modification.
+
 
