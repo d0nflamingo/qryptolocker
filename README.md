@@ -21,7 +21,7 @@
 
 - master key safely stored on the server
 - client-server communication secured with post-quantum cryptography
-- partial decryption of the arborescence 
+- partial decryption of the arborescence with sub-keys
 - minimal attack surface for memory analysis
 
 ### How?
@@ -66,6 +66,7 @@ The use of words for decryption was mandatory for the sake of the initial school
 
 - Replace requirement to input password for decryption with automated cryptographic key validation
 - Simplify the install and deployment process
+- Establish proper adversary model to improve overall application security
 
 ---
 
