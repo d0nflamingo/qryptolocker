@@ -72,7 +72,7 @@ The use of words for decryption was mandatory for the sake of the initial school
 
 ## Contributing
 
-EVE is MIT licensed - you are free to fork it, adapt it, and use it in any project, including commercial ones. No contribution process is set up at this time.
+qryptolocker is MIT licensed - you are free to fork it, adapt it, and use it in any project, including commercial ones. No contribution process is set up at this time.
 
 If you find a bug or have a suggestion, feel free to open an issue
 
